@@ -1,31 +1,23 @@
 from auth import register, login, load_users
-from session import create_session, validate_session, get_session, destroy_session
+from session import *
 from rbac import check_access
 from abac import check_abac
+from resource import *
 import time
 
 current_session = None
 
-# ---------- Helpers ----------
-
-def is_admin(session):
-    return session and session.get("role") == "admin"
-
 def require_auth():
     global current_session
     if not current_session or not validate_session(current_session):
-        print("Session expired or invalid. Please login again.")
+        print("Session expired. Login again.")
         current_session = None
         return False
     return True
 
-def get_prompt(session):
+def prompt(session):
     remaining = int(300 - (time.time() - session["created"]))
-    if remaining < 0:
-        remaining = 0
     return f"[{session['user']}:{session['role']} | {remaining}s] >> "
-
-# ---------- Core Loop ----------
 
 def action_loop():
     global current_session
@@ -35,8 +27,12 @@ def action_loop():
             break
 
         session = get_session(current_session)
-        prompt = get_prompt(session)
-        action = input(prompt).strip()
+        cmd = input(prompt(session)).strip().split()
+
+        if not cmd:
+            continue
+
+        action = cmd[0]
 
         if action == "logout":
             destroy_session(current_session)
@@ -47,20 +43,59 @@ def action_loop():
         if action == "exit":
             exit()
 
-        # RBAC check
+        if action == "adduser":
+            if session["role"] != "admin":
+                print("Only admin allowed")
+                continue
+
+            u = input("Username: ")
+            p = input("Password: ")
+            r = input("Role: ")
+            d = input("Department: ")
+
+            print(register(u, p, r, d))
+            continue
+
+        if action not in ["read", "write", "delete"]:
+            print("Invalid action")
+            continue
+
+        # RBAC
         if not check_access(session["role"], action):
-            print("RBAC: Access denied")
+            print("RBAC denied")
             continue
 
-        # ABAC check
-        resource = {"owner": session["user"]}  # simple mock resource
-        if not check_abac(session, action, resource):
-            print("ABAC: Access denied")
-            continue
+        # Resource operations
+        if action == "read":
+            rid = int(input("Resource ID: "))
+            res = get_resource(rid)
 
-        print(f"{action} executed successfully")
+            if not res:
+                print("Not found")
+                continue
 
-# ---------- Menu ----------
+            print(res["content"])
+
+        elif action == "write":
+            content = input("Content: ")
+            rid = add_resource(session["user"], content)
+            print(f"Created resource {rid}")
+
+        elif action == "delete":
+            rid = int(input("Resource ID: "))
+            res = get_resource(rid)
+
+            if not res:
+                print("Not found")
+                continue
+
+            # ABAC
+            if not check_abac(session, "delete", res):
+                print("ABAC denied")
+                continue
+
+            delete_resource(rid)
+            print("Deleted")
 
 def menu():
     print("""
@@ -69,14 +104,11 @@ def menu():
 3. exit
 """)
 
-# ---------- Main ----------
-
 while True:
     menu()
-    choice = input(">> ").strip()
+    c = input(">> ")
 
-    # ---------- LOGIN ----------
-    if choice == "1":
+    if c == "1":
         u = input("Username: ")
         p = input("Password: ")
 
@@ -89,35 +121,31 @@ while True:
         else:
             print(data)
 
-    # ---------- ADD USER ----------
-    elif choice == "2":
+    elif c == "2":
         users = load_users()
 
-        # bootstrap: create first admin
         if not users:
-            print("No users found. Create initial admin.")
+            print("Create initial admin")
             u = input("Username: ")
             p = input("Password: ")
             print(register(u, p, "admin", "CS"))
             continue
 
-        # require admin session
         if not require_auth():
             continue
 
         session = get_session(current_session)
 
         if session["role"] != "admin":
-            print("Only admin can add users")
+            print("Only admin allowed")
             continue
 
-        u = input("New username: ")
+        u = input("Username: ")
         p = input("Password: ")
-        r = input("Role (admin/user): ")
+        r = input("Role: ")
         d = input("Department: ")
 
         print(register(u, p, r, d))
 
-    # ---------- EXIT ----------
-    elif choice == "3":
+    elif c == "3":
         break
