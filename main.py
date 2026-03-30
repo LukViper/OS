@@ -16,7 +16,7 @@ def require_auth():
     return True
 
 def prompt(session):
-    remaining = int(300 - (time.time() - session["created"]))
+    remaining = int(60 - (time.time() - session["created"]))
     return f"[{session['user']}:{session['role']} | {remaining}s] >> "
 
 def action_loop():

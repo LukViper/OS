@@ -19,7 +19,8 @@ def get_resource(rid):
 
 def add_resource(owner, content):
     resources = load_resources()
-    rid = len(resources) + 1
+    ids = [r["id"] for r in resources]
+    rid = max(ids, default=0) + 1
 
     resources.append({
         "id": rid,

@@ -1,7 +1,7 @@
 import secrets, time
 
 sessions = {}
-TIMEOUT = 300
+TIMEOUT = 60
 
 def create_session(username, role, dept):
     sid = secrets.token_hex(16)
