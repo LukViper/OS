@@ -34,6 +34,8 @@ def action_loop():
 
         action = cmd[0]
 
+        # ---------- COMMAND HANDLING ----------
+
         if action == "logout":
             destroy_session(current_session)
             current_session = None
@@ -56,16 +58,46 @@ def action_loop():
             print(register(u, p, r, d))
             continue
 
+
+        # ---------- LIST (MUST BE BEFORE VALIDATION) ----------
+        if action == "profile":
+            print("\n--- USER PROFILE ---")
+            print(f"User       : {session['user']}")
+            print(f"Role       : {session['role']}")
+            print(f"Department : {session['department']}")
+
+            remaining = int(60 - (time.time() - session["created"]))
+            if remaining < 0:
+                remaining = 0
+
+            print(f"Session TTL: {remaining}s")
+            print("---------------------\n")
+            continue
+        if action == "list":
+            resources = list_resources()
+
+            if not resources:
+                print("No resources found")
+                continue
+
+            for r in resources:
+                print(f"ID: {r['id']} | Name: {r['name']} | Owner: {r['owner']}")
+            continue
+
+
+        # ---------- VALID ACTIONS ----------
         if action not in ["read", "write", "delete"]:
             print("Invalid action")
             continue
 
-        # RBAC
+
+        # ---------- RBAC ----------
         if not check_access(session["role"], action):
-            print("RBAC denied")
+            print("Access denied")
             continue
 
-        # Resource operations
+
+        # ---------- OPERATIONS ----------
         if action == "read":
             rid = int(input("Resource ID: "))
             res = get_resource(rid)
@@ -76,10 +108,14 @@ def action_loop():
 
             print(res["content"])
 
+
         elif action == "write":
+            name = input("File name: ")
             content = input("Content: ")
-            rid = add_resource(session["user"], content)
+
+            rid = add_resource(session["user"], content, name)
             print(f"Created resource {rid}")
+
 
         elif action == "delete":
             rid = int(input("Resource ID: "))
@@ -89,14 +125,12 @@ def action_loop():
                 print("Not found")
                 continue
 
-            # ABAC
             if not check_abac(session, "delete", res):
                 print("ABAC denied")
                 continue
 
             delete_resource(rid)
             print("Deleted")
-
 def menu():
     print("""
 1. login

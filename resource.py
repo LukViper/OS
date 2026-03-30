@@ -35,3 +35,23 @@ def delete_resource(rid):
     resources = load_resources()
     resources = [r for r in resources if r["id"] != rid]
     save_resources(resources)
+
+def add_resource(owner, content, name, rtype="python"):
+    resources = load_resources()
+
+    ids = [r["id"] for r in resources]
+    rid = max(ids, default=0) + 1
+
+    resources.append({
+        "id": rid,
+        "name": name,
+        "owner": owner,
+        "type": rtype,
+        "content": content
+    })
+
+    save_resources(resources)
+    return rid
+
+def list_resources():
+    return load_resources()

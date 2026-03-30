@@ -8,7 +8,7 @@ def check_abac(session, action, resource=None):
         return False
 
     # department restriction
-    if action in ["write", "delete"]:
+    if action in ["write", "delete","read"]:
         if session["department"] != "CS":
             return False
 

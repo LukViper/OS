@@ -8,5 +8,25 @@
         "password": "$2b$12$vxvp8O1QcMhdpvwoZ9jmX.BWtmqtfm9aM.Gh1zgVyZPZHBPBJtpGG",
         "role": "user",
         "department": "CS"
+    },
+    "CS": {
+        "password": "$2b$12$ujNQyo7EuTAKr3P47X1lHuUPbPUJtElIG7eQJ7NIWMYzNHQibk8fO",
+        "role": "user",
+        "department": "CS"
+    },
+    "IT ": {
+        "password": "$2b$12$sKjKZs5/Grg10t0Uv32F7enX4SFpusKDt6vwOLGSqDcOVuY656qCy",
+        "role": "user",
+        "department": "IT"
+    },
+    "HR": {
+        "password": "$2b$12$guQn3qxjR1egh32bBwEnCuHrBgRPfpNWUiJR9Q4ohRZf4IusrInY.",
+        "role": "user",
+        "department": "HR"
+    },
+    "cs": {
+        "password": "$2b$12$sv7gJ1H5chszMp6zjOcBaubsgkUOPOyLaNIcVF.WF9t7qrTSy0Fti",
+        "role": "user",
+        "department": "cs"
     }
 }
